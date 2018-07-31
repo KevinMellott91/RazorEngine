@@ -22,7 +22,9 @@ namespace RazorEngine.Compilation.ReferenceResolver
         {
             return CompilerServicesUtility
                    .GetLoadedAssemblies()
-                   .Where(a => !a.IsDynamic && File.Exists(a.Location) && !a.Location.Contains(CompilerServiceBase.DynamicTemplateNamespace))
+                   // Hotfix applied from https://github.com/Antaris/RazorEngine/issues/526
+                   //.Where(a => !a.IsDynamic && File.Exists(a.Location) && !a.Location.Contains(CompilerServiceBase.DynamicTemplateNamespace))
+                   .Where(a => !a.IsDynamic && !a.FullName.Contains("Version=0.0.0.0") && File.Exists(a.Location) && !a.Location.Contains("CompiledRazorTemplates.Dynamic"))
                    .GroupBy(a => a.GetName().Name).Select(grp => grp.First(y => y.GetName().Version == grp.Max(x => x.GetName().Version))) // only select distinct assemblies based on FullName to avoid loading duplicate assemblies
                    .Select(a => CompilerReference.From(a))
                    .Concat(includeAssemblies ?? Enumerable.Empty<CompilerReference>());
